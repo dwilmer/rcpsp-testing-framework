@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 import string
-import Activity
+from Activity import Activity
 
 # Class representing an RCPSP Instance
 # Fields:

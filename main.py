@@ -2,7 +2,11 @@
 import sys, getopt, re, os.path, string
 from collections import namedtuple
 from multiprocessing import Pool
-from classes import *
+from classes.Instance import Instance
+from classes.Activity import Activity
+from classes.Report import Report
+from classes.Solution import Solution
+from classes.Testdata import Testdata
 from solver import solve
 from createPOS import createPOS
 from tester import test
