@@ -90,7 +90,7 @@ def chtourouMetricsSingleAct(act, slack, alpha, cappedSlack, totalResources = 1)
 	metrics.append(cappedSlack * sumRes) #RB11
 	metrics.append(cappedSlack * numSucc * sumRes) #RB12
 
-	normRes = (float)sumRes / (float)totalResources
+	normRes = float(sumRes) / float(totalResources)
 	metrics.append(slack * normRes)
 	metrics.append(alpha * normRes)
 	metrics.append(cappedSlack * normRes)

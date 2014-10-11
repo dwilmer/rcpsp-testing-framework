@@ -1,11 +1,14 @@
 #! /user/bin/python
 
-import os
+import os, os.path
 from solver import solve
 from classes import Testdata
 
 def test(data):
-	folder = '../datasets/delays/{0}/'.format(data['options']['testset'])
+	folder = data['options']['testset']
+	print folder
+	if not os.path.isdir(folder):
+		folder = '../datasets/delays/{0}/'.format(data['options']['testset'])
 	testdata = Testdata(data['pos'])
 
 	for delayset in os.listdir(folder):

@@ -1,5 +1,5 @@
 #! /usr/bin/python
-import sys, getopt, re, os.path
+import sys, getopt, re, os.path, string
 from collections import namedtuple
 from multiprocessing import Pool
 from classes import *
@@ -44,12 +44,13 @@ def getFilenames(instanceFilename):
 	global options
 	basename = os.path.basename(instanceFilename)
 	outfolder = options['output']
+	testsetname = options['testset'].replace("/",".")
 	names = {
 		'instance': instanceFilename,
 		'solution': "{0}/solution/{1}.sol_{2}".format(outfolder, basename, options['solver']),
 		'pos': "{0}/pos/{1}.sol_{2}.chain_{3}".format(outfolder, basename, options['solver'], options['chainer']),
-		'testdata': "{0}/testdata/{1}.sol_{2}.chain_{3}.test_{4}".format(outfolder, basename, options['solver'], options['chainer'], options['testset']),
-		'report': "{0}/report/{1}.sol_{2}.chain_{3}.test_{4}.report".format(outfolder, basename, options['solver'], options['chainer'], options['testset'])
+		'testdata': "{0}/testdata/{1}.sol_{2}.chain_{3}.test_{4}".format(outfolder, basename, options['solver'], options['chainer'], testsetname),
+		'report': "{0}/report/{1}.sol_{2}.chain_{3}.test_{4}.report".format(outfolder, basename, options['solver'], options['chainer'], testsetname)
 	}
 	return names
 
