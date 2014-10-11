@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 import sys
-from classes import Instance
+from classes.Instance import Instance
 import getopt
 
 

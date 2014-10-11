@@ -1,4 +1,8 @@
-from classes import *
+from classes.Instance import Instance
+from classes.Activity import Activity
+from classes.Report import Report
+from classes.Solution import Solution
+from classes.Testdata import Testdata
 
 def solve(data):
 	instance = data['instance']

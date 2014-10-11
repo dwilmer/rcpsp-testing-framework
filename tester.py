@@ -2,7 +2,7 @@
 
 import os, os.path
 from solver import solve
-from classes import Testdata
+from classes.Testdata import Testdata
 
 def test(data):
 	folder = data['options']['testset']

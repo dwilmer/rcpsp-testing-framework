@@ -1,5 +1,9 @@
 #! /user/bin/python
-from classes import *
+from classes.Instance import Instance
+from classes.Activity import Activity
+from classes.Report import Report
+from classes.Solution import Solution
+from classes.Testdata import Testdata
 
 def report(data):
 	from solver import solve
