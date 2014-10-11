@@ -1,2 +1,6 @@
 *.pyc
 gurobi.log
+test/pos
+test/report
+test/solution
+test/testdata
