@@ -1,23 +1,7 @@
 #! /usr/bin/python
 
 import sys, string
-
-def void(*args):
-	pass
-
-class Activity:
-	def __init__(self, time, numResources):
-		self.time = time
-		self.resources = [0] * numResources
-		self.predecessors = set()
-		self.successors = set()
-
-	def reverse(self):
-		"""Changes predecessors to successors and vice versa"""
-		tmp = self.predecessors
-		self.predecessors = self.successors
-		self.successors = tmp
-	
+import Activity
 
 class Instance:
 	def __init__(self):
