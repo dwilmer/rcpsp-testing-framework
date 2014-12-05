@@ -38,14 +38,16 @@ def reportScheduleQuality(report, instance, schedule, prefix):
 	reportChtourouMetrics(report, instance, schedule, prefix)
 	reportRiskFactor(report, instance, schedule, prefix)
 	reportTotalRoom(report, instance, schedule, prefix)
+	report.addFinding(prefix + '_connectedTotalFloat', getConnectedTotalFloat(instance, schedule))
+	report.addFinding(prefix + '_predecessorConsumption', calculatePredecessorConsumption(instance))
 
 def reportChtourouMetrics(report, instance, schedule, prefix):
 	# calculate metrics
 	deadline = schedule.getMakespan()
 	slack = map(lambda actId: calculateSlack(instance, schedule, actId, deadline), range(len(instance.activities)))
 	alpha = [1 if s > 0 else 0 for s in slack]
-	frac = float(sum(slack)) / instance.getHorizon()
-	cappedSlack = map(min, slack, [act.time * frac for act in instance.activities])
+	#frac = float(sum(slack)) / instance.getHorizon()
+	cappedSlack = map(min, slack, [act.time for act in instance.activities])
 
 	rawMetrics = map(chtourouMetricsSingleAct, instance.activities, slack, alpha, cappedSlack)
 	metrics = reduce(lambda x,y: map(float.__add__, x, y), rawMetrics)
@@ -121,27 +123,86 @@ def calculateAverageResourceUsage(instance, solution):
 	avgResourceUsage = map(lambda tot, cap: float(tot) / float(cap * timepoints), resourceUsage, instance.resources)
 	return sum(avgResourceUsage) / len(instance.resources)
 
+def calculatePredecessorConsumption(instance):
+	predecessorUsage = map(lambda act: float(sum(map(lambda predId: sum(instance.activities[predId].resources), act.predecessors))), instance.activities)
+	resourceUsage = map(lambda act: float(sum(act.resources)), instance.activities)
+	predecessorResourceConsumption = map(lambda res, pred: res / pred if pred > 0 else 1.0, resourceUsage, predecessorUsage)
+	return sum(predecessorResourceConsumption) / float(len(predecessorResourceConsumption))
+
 # TEST DATA
 def reportTestData(report, data):
 	totals = {}
-	for instance in data['testdata'].results.itervalues():
-		instanceInfo = getTestInstanceInfo(report, data, instance)
-		totals = {x: totals.get(x, 0) + instanceInfo[x] for x in instanceInfo}
+	for delayFile, delayedStartTimes in data['testdata'].results.iteritems():
+		delayedStartTimesInfo = getTestInstanceInfo(report, data, delayedStartTimes, getDelays(data['instance'], delayFile))
+		totals = {x: totals.get(x, 0) + delayedStartTimesInfo[x] for x in delayedStartTimesInfo}
 	for fact, value in totals.iteritems():
 		report.addFinding(fact, float(value) / len(data['testdata'].results))
 
+def getDelays(instance, delayFile):
+	f = open(delayFile, 'r')
+	delays = map(float, list(f))
+	f.close()
 
-def getTestInstanceInfo(report, data, instance):
+	return map(lambda delay, act: (delay - 1.0) * float(act.time), delays[:len(instance.activities)], instance.activities)
+
+
+def getTestInstanceInfo(report, data, delayedStartTimes, delays):
 	from solver import solve
-	instanceInfo = {}
+	delayedStartTimesInfo = {}
 
 	delayedSolution = Solution(data['instance'])
-	delayedSolution.startTimes = instance
+	delayedSolution.startTimes = delayedStartTimes
 
 	# gather data
-	instanceInfo['makespan'] = delayedSolution.getMakespan()
-	instanceInfo['numDelays'] = sum(map(float.__gt__, map(float, delayedSolution.startTimes), map(float,data['solution'].startTimes)))
-	instanceInfo['totalDelay'] = sum(map(float.__sub__, map(float, delayedSolution.startTimes), map(float, data['solution'].startTimes)))
+	delayedStartTimesInfo['makespan'] = delayedSolution.getMakespan()
+	delayedStartTimesInfo['numDelays'] = sum(map(float.__gt__, map(float, delayedSolution.startTimes), map(float,data['solution'].startTimes)))
+	delayedStartTimesInfo['totalDelay'] = sum(map(float.__sub__, map(float, delayedSolution.startTimes), map(float, data['solution'].startTimes)))
+	delayedStartTimesInfo['effectiveTotalFloat'] = getLimitedTotalFloat(data['instance'], data['solution'], delayedStartTimes, delays)
 	
-	return instanceInfo
+	return delayedStartTimesInfo
+
+def getLimitedTotalFloat(instance, solution, delayedStartTimes, delays):
+	limits = map(lambda st, dst, dl: dst - st + dl, map(float, solution.startTimes), delayedStartTimes, delays)
+	pairwiseFloat = getPairwiseFloat(instance, solution)
+	return getTotalFloat(pairwiseFloat, limits)
+
+def getConnectedTotalFloat(instance, solution):
+	n = len(instance.activities)
+	pairwiseFloat = getPairwiseFloat(instance, solution)
+	totalConnectedFloat = 0
+	horizon = instance.getHorizon()
+	for i in range(n):
+		for j in range(i + 1, n):
+			if pairwiseFloat[i][j] < horizon:
+				totalConnectedFloat = totalConnectedFloat + pairwiseFloat[i][j]
+	return totalConnectedFloat
+
+def getPairwiseFloat(instance, solution):
+	n = len(instance.activities)
+	limit = instance.getHorizon();
+	pairwiseFloat = [([limit] * l) + [0] + ([limit] * (n - l - 1)) for l in range(n)]
+
+	def getFloat(actId, successorId):
+		return solution.startTimes[successorId] - solution.startTimes[actId] - instance.activities[actId].time
+
+	def setSuccessorPairwiseFloat(actId, successorId, succPairwiseFloat):
+		if succPairwiseFloat < pairwiseFloat[actId][successorId]:
+			pairwiseFloat[actId][successorId] = succPairwiseFloat
+			successor = instance.activities[successorId]
+			for succ in successor.successors:
+				setSuccessorPairwiseFloat(actId, succ, succPairwiseFloat + getFloat(successorId, succ))
+	for actId, act in enumerate(instance.activities):
+		for successor in act.successors:
+			setSuccessorPairwiseFloat(actId, successor, getFloat(actId, successor))
+	return pairwiseFloat
+
+def getTotalFloat(pairwiseFloat, limits):
+	n = len(limits)
+	totalFloat = 0
+	for i in range(n):
+		for j in range(i + 1, n):
+			totalFloat = totalFloat + min([limits[i], pairwiseFloat[i][j]])
+	return totalFloat
+
+
 

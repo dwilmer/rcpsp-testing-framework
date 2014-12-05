@@ -50,25 +50,101 @@ def filterMinAddedSucc(chains, data):
 	pos = data['pos']
 	
 	actSuccessors = pos.getAllSuccessors(actId)
+
+	actValueFunction = lambda act: len(actSuccessors - pos.getAllSuccessors(act))
+	return _filterActValueMinimum(chains, lastActs, actValueFunction)
+
+def filterMinSucc(chains, data):
+	"Retains the chains of the activities which have the least unchained successors"
+	lastActs = data['lastActs']
+	activities = data['pos'].activities
+	startTimes = data['solution'].startTimes
+	
+	actValueFunction = lambda act: len(filter(lambda actId: startTimes[actId] >= data['time'], activities[act].successors))
+	return _filterActValueMinimum(chains, lastActs, actValueFunction)
+
+def filterMinChains(chains, data):
+	"Retains the chains of the activities with the lowest amount of free chains"
+	lastActs = data['lastActs']
+	actValueFunction = lambda act: len(filter(lambda actId: actId == act, lastActs))
+	return _filterActValueMinimum(chains, lastActs, actValueFunction)
+
+def filterMaxChains(chains, data):
+	"Retains the chains of the activities with the highest amount of free chains"
+	lastActs = data['lastActs']
+	actValueFunction = lambda act: -1 * len(filter(lambda actId: actId == act, lastActs))
+	return _filterActValueMinimum(chains, lastActs, actValueFunction)
+
+def filterMinAddedPredecessors(chains, data):
+	lastActs = data['lastActs']
+	neededChains = data['required'] - data['assigned']
+	pos = data['pos']
+	actPredecessors = pos.getAllPredecessors(data['actId'])
+
+	numChainsPerAct = {act: min([neededChains, len(filter(lambda actId: actId == act, lastActs))]) for act in lastActs}
+	numAddedPredecessors = lambda act: float(len(pos.getAllPredecessors(act) - actPredecessors)) / float(numChainsPerAct[act])
+
+	return _filterActValueMinimum(chains, lastActs, numAddedPredecessors)
+
+def filterMinAddedPredecessors2(chains, data):
+	lastActs = data['lastActs']
+	pos = data['pos']
+	neededChains = data['required'] - data['assigned']
 	filteredActs = {lastActs[chain] for chain in chains}
 
-	addedSuccessors = {act:len(actSuccessors - pos.getAllSuccessors(act)) for act in filteredActs}
-	minAddedSuccessors = min(addedSuccessors.values())
+	if len(filteredActs) == 1:
+		return chains
 
-	return {chain for chain in chains if addedSuccessors[lastActs[chain]] == minAddedSuccessors}
+	currentActPredecessors = pos.getAllPredecessors(data['actId'])
+	chainActPredecessors = {act: pos.getAllPredecessors(act) for act in filteredActs}
+
+	numChainsPerAct = {act: len(filter(lambda actId: actId == act, lastActs)) for act in filteredActs}
+	
+	numAddedPredecessors2 = lambda act: min({
+		float(len((chainActPredecessors[act] + chainActPredecessors[nextAct]) - currentActPredecessors)) / 
+		float(min([numChainsPerAct[act] + numChainsPerAct[nextAct],neededChains])) 
+		for nextAct in filteredActs if nextAct != act})
+
+	return _filterActValueMinimum(chains, lastActs, numAddedPredecessors2)
+
+	
+
+def filterSuffChains(chains, data):
+	"Retains the chains of the activities with sufficient free chains"
+	lastActs = data['lastActs']
+	neededChains = data['required'] - data['assigned']
+	chainsPerAct = lambda act: -1 * len(filter(lambda actId: actId == act, lastActs))
+
+	return _filterActValueThreshold(chains, lastActs, chainsPerAct, -1 * neededChains)
 
 def filterNonDecreasedSlack(chains, data):
 	"Retains the chains such that this activity does not decrease the slack of the last activity on the chain"
 	actId = data['actId']
 	lastActs = data['lastActs']
-	pos = data['pos']
-	solution = data['solution']
+	activities = data['pos'].activities
+	startTimes = data['solution'].startTimes
 	time = data['time']
 
-	finiteSlackActs = {lastActs[chain] for chain in chains if chain in lastActs and  len(pos.activities[lastActs[chain]].successors) > 0}
-	chainActSlack = {act:min([solution.startTimes[succ] for succ in pos.activities[act].successors]) for act in finiteSlackActs}
-	nonDecreasedSlackActs = {act for (act, succStart) in enumerate(chainActSlack) if succStart >= time}
-	return {chain for chain in chains if lastActs[chain] in nonDecreasedSlackActs}
+	actSuccTime = lambda act: -1 * min([startTimes[succ] for succ in activities[act].successors]) if len(activities[act].successors) > 0 else 0
+
+	return _filterActValueThreshold(chains, lastActs, actSuccTime, -1 * time)
+
+
+def _filterActValueMinimum(chains, lastActs, actValueFunction):
+	"Retains chains for which the result of actValueFunction(actID) is lowest"
+	filteredActs = {lastActs[chain] for chain in chains}
+	actValues = {act: actValueFunction(act) for act in filteredActs}
+	minValue = min(actValues.values())
+
+	return {chain for chain in chains if actValues[lastActs[chain]] == minValue}
+
+def _filterActValueThreshold(chains, lastActs, actValueFunction, actValueThreshold):
+	"Retains chains for which the result of actValueFunction(actID) is less than or equal to actValueThreshold"
+	filteredActs = {lastActs[chain] for chain in chains}
+	actValues = {act:actValueFunction(act) for act in filteredActs}
+	
+	return {chain for chain in chains if actValues[lastActs[chain]] <= actValueThreshold}
+	
 
 
 ##

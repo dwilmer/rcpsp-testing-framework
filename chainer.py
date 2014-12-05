@@ -1,12 +1,22 @@
 import random
-from chainFilters import filterByTime, filterMaxCC, filterMinID, filterMaxSlack, filterMinSlack, filterNonDecreasedSlack, sequence, fallback
+from chainFilters import filterByTime, filterMaxCC, filterMinID
+from chainFilters import filterMaxSlack, filterMinSlack, filterNonDecreasedSlack
+from chainFilters import filterMinChains, filterMaxChains, filterSuffChains, filterMinSucc, filterMinAddedPredecessors, filterMinAddedPredecessors2
+from chainFilters import sequence, fallback
 
 namedFilters = [
 	('special', fallback([filterMaxCC, sequence([filterMinID, filterMinSlack]), sequence([filterNonDecreasedSlack, filterMinSlack]), filterMaxSlack])),
 	('maxCC', filterMaxCC),
 	('minIDminSlack', sequence([filterMinID,filterMinSlack])),
+	('minIDminChains', sequence([filterMinID,filterMinChains])),
+	('maxChains', filterMaxChains),
 	('minID', filterMinID),
-	('maxSlack', filterMaxSlack)
+	('maxSlack', filterMaxSlack),
+	('minAddedPredecessors', filterMinAddedPredecessors),
+	('minAddedPredecessors2', filterMinAddedPredecessors2),
+	('flexopt_heuristic', fallback([filterMaxCC, sequence([filterMinID, filterMinSucc]), sequence([filterSuffChains,filterMinChains,filterMinSucc]),sequence([filterMaxChains, filterMinSucc])])),
+	('flexopt_transitive', fallback([filterMaxCC, sequence([filterMinID, filterMinSucc]), sequence([filterMinAddedPredecessors,filterMinSucc])])),
+	('flexopt_transitive2', fallback([filterMaxCC, sequence([filterMinID, filterMinSucc]), sequence([filterMinAddedPredecessors2,filterMinSucc])]))
 ]
 
 def chain(data):
@@ -61,6 +71,8 @@ def chainPolicella(instance, solution, chainFilter, debug=False):
 			act = instance.activities[actId]
 			req = act.resources[resId]
 			for i in range(req):
+				data['required'] = req
+				data['assigned'] = i
 				candidates = chainFilter(chains, data)
 				if len(candidates) == 0:
 					print "No candidates to choose!"
