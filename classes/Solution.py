@@ -5,17 +5,24 @@ class Solution:
 		self.instance = instance
 		self.startTimes = [-1] * len(instance.activities)
 		
+	def readFromFile(filename, dataLib):
+		newSolution = Solution(dataLib['instance'])
+
+		infile = file(filename, 'r')
+		line = infile.readline()
+		newSolution.startTimes = map(float, line.split())
+		infile.close()
+
+		return newSolution
+
+	def create(dataLib):
+		return Solution(dataLib['instance'])
+
 	def writeToFile(self, filename):
 		out = file(filename, 'w')
 		out.write(" ".join(map(str, self.startTimes)))
 		out.write('\n')
 		out.close()
-
-	def readFromFile(self, filename):
-		infile = file(filename, 'r')
-		line = infile.readline()
-		self.startTimes = map(float, line.split())
-		infile.close()
 
 	def getMakespan(self):
 		return max([self.startTimes[x] + self.instance.activities[x].time for x in range(len(self.startTimes)) if self.startTimes[x] > -1])

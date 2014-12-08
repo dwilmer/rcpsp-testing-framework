@@ -149,16 +149,34 @@ class Instance:
 		for act in self.activities:
 			outfile.write('%d,%s,%s\n' % (act.time, ' '.join(map(str, act.predecessors)),' '.join(map(str, act.resources))))
 
-	def export(self, filename):
+	def writeToFile(self, filename):
 		f = file(filename, 'w')
 		self.exportToOpenedFile(f)
 		f.close()
 
-	def readFromDump(self, infilename):
-		infile = file(infilename, 'r')
-		resLine = infile.readline().split(',')
-		if int(resLine[0]) > 0:
-			self.resources = map(int, resLine[1:])
+	def readFromFile(filename, dataLib = None):
+		# initialise intance
+		newInstance = Instance()
+		newInstance.name = filename
+
+		# open file
+		infile = open(filename, 'r')
+
+		# use first line to detect type of file and read file
+		firstLine = infile.readline()
+		if firstLine.startswith("**********"):
+			newInstance.readFromPSPLIB(infile)
+		else:
+			resLine = firstLine.split(',')
+			if int(resLine[0]) > 0:
+				newInstance.resources = map(int, resLine[1:])
+			newInstance.readFromExport(infile)
+
+		# close file handler, return the read instance
+		infile.close()
+		return newInstance
+		
+	def readFromExport(self, infile):
 
 		line = string.strip(infile.readline())
 		while not string.strip(line) == '':
@@ -174,15 +192,9 @@ class Instance:
 		for (actId, act) in enumerate(self.activities):
 			for pred in act.predecessors:
 				self.activities[pred].successors.add(actId)
-		infile.close()
 	
-	def readFromFile(self, filename):
-		self.name = filename
-		# open file
-		infile = open(filename, 'r')
-		
+	def readFromPSPLIB(self, infile)
 		# skip first lines (not interesting)
-		infile.readline()
 		infile.readline()
 		infile.readline()
 		infile.readline()
@@ -203,6 +215,10 @@ class Instance:
 		
 		# read resource availability
 		self.readResources(infile)
+
+
+	def create(dataLib):
+		return Instance()
 	
 	def readInstanceInfo(self, infile):
 		numJobs = 0

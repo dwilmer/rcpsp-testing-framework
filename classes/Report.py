@@ -13,12 +13,18 @@ class Report:
 			outfile.write('{0}:{1}\n'.format(key, value))
 		outfile.close()
 
-	def readFromFile(self, filename):
+	def readFromFile(filename, dataLib = None):
+		newReport = Report()
 		infile = open(filename, 'r')
 		for line in infile:
 			parts = line.split(':')
 			if len(parts) == 2:
-				self.addFinding(parts[0], float(parts[1]))
+				newReport.addFinding(parts[0], float(parts[1]))
 		infile.close()
+
+		return newReport
+
+	def create(dataLib):
+		return Report()
 
 

@@ -29,11 +29,16 @@ class Testdata:
 			outfile.write('\n')
 		outfile.close()
 
-	def readFromFile(self, filename):
+	def readFromFile(filename, dataLib):
+		newTestdata = Testdata.create(dataLib)
 		infile = open(filename, 'r')
 		for line in infile:
 			parts = line.split(':')
 			if len(parts) == 2:
-				self.results[parts[0]] = map(float, parts[1].split())
+				newTestdata.results[parts[0]] = map(float, parts[1].split())
 		infile.close()
+		return newTestdata
+
+	def create(dataLib):
+		return Testdata(dataLib['pos'])
 
