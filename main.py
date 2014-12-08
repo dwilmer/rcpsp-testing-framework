@@ -65,38 +65,14 @@ def processInstance(filename):
 	# get data from files where available
 	data = {'options': options}
 	names = getFilenames(filename)
-	data['instance'] = Instance()
-	data['instance'].readFromFile(names['instance'])
 
-	if os.path.isfile(names['solution']):
-		data['solution'] = Solution(data['instance'])
-		data['solution'].readFromFile(names['solution'])
-
-		if os.path.isfile(names['pos']):
-			data['pos'] = Instance()
-			data['pos'].readFromDump(names['pos'])
-
-			if os.path.isfile(names['testdata']):
-				data['testdata'] = Testdata(data['pos'])
-				data['testdata'].readFromFile(names['testdata'])
-
-				if os.path.isfile(names['report']):
-					data['report'] = Report()
-					data['report'].readFromFile(names['report'])
-
-	# get missing data, write to files
-	if not 'solution' in data:
-		data['solution'] = solve(data)
-		data['solution'].writeToFile(names['solution'])
-	if not 'pos' in data:
-		data['pos'] = createPOS(data)
-		data['pos'].export(names['pos'])
-	if not 'testdata' in data:
-		data['testdata'] = test(data)
-		data['testdata'].writeToFile(names['testdata'])
-	if not 'report' in data:
-		data['report'] = report(data)
-		data['report'].writeToFile(names['report'])
+	pipeline = Pipeline()
+	pipeline.addJob('instance', names['instance'], Instance, lambda x: None)
+	pipeline.addJob('solution', names['solution'], Solution, solve)
+	pipeline.addJob('pos', names['pos'], Instance, createPOS)
+	pipeline.addJob('testdata', names['testdata'], Testdata, test)
+	pipeline.addJob('report', names['report'], Report, report)
+	pipeline.execute()
 
 	print filename
 
