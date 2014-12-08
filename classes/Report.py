@@ -13,6 +13,7 @@ class Report:
 			outfile.write('{0}:{1}\n'.format(key, value))
 		outfile.close()
 
+	@staticmethod
 	def readFromFile(filename, dataLib = None):
 		newReport = Report()
 		infile = open(filename, 'r')

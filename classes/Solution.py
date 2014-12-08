@@ -5,6 +5,7 @@ class Solution:
 		self.instance = instance
 		self.startTimes = [-1] * len(instance.activities)
 		
+	@staticmethod
 	def readFromFile(filename, dataLib):
 		newSolution = Solution(dataLib['instance'])
 

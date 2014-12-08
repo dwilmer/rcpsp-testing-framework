@@ -7,6 +7,7 @@ from classes.Activity import Activity
 from classes.Report import Report
 from classes.Solution import Solution
 from classes.Testdata import Testdata
+from classes.Pipeline import Pipeline
 from solver import solve
 from createPOS import createPOS
 from tester import test
@@ -72,7 +73,7 @@ def processInstance(filename):
 	pipeline.addJob('pos', names['pos'], Instance, createPOS)
 	pipeline.addJob('testdata', names['testdata'], Testdata, test)
 	pipeline.addJob('report', names['report'], Report, report)
-	pipeline.execute()
+	pipeline.execute(data)
 
 	print filename
 

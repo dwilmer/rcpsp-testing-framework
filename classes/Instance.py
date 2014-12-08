@@ -154,6 +154,7 @@ class Instance:
 		self.exportToOpenedFile(f)
 		f.close()
 
+	@staticmethod
 	def readFromFile(filename, dataLib = None):
 		# initialise intance
 		newInstance = Instance()
@@ -193,7 +194,7 @@ class Instance:
 			for pred in act.predecessors:
 				self.activities[pred].successors.add(actId)
 	
-	def readFromPSPLIB(self, infile)
+	def readFromPSPLIB(self, infile):
 		# skip first lines (not interesting)
 		infile.readline()
 		infile.readline()

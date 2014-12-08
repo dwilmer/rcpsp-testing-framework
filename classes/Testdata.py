@@ -29,6 +29,7 @@ class Testdata:
 			outfile.write('\n')
 		outfile.close()
 
+	@staticmethod
 	def readFromFile(filename, dataLib):
 		newTestdata = Testdata(dataLib['pos'])
 		infile = open(filename, 'r')
