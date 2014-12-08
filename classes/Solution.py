@@ -15,9 +15,6 @@ class Solution:
 
 		return newSolution
 
-	def create(dataLib):
-		return Solution(dataLib['instance'])
-
 	def writeToFile(self, filename):
 		out = file(filename, 'w')
 		out.write(" ".join(map(str, self.startTimes)))

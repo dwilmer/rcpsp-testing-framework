@@ -30,7 +30,7 @@ class Testdata:
 		outfile.close()
 
 	def readFromFile(filename, dataLib):
-		newTestdata = Testdata.create(dataLib)
+		newTestdata = Testdata(dataLib['pos'])
 		infile = open(filename, 'r')
 		for line in infile:
 			parts = line.split(':')
@@ -38,7 +38,4 @@ class Testdata:
 				newTestdata.results[parts[0]] = map(float, parts[1].split())
 		infile.close()
 		return newTestdata
-
-	def create(dataLib):
-		return Testdata(dataLib['pos'])
 

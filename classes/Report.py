@@ -24,7 +24,4 @@ class Report:
 
 		return newReport
 
-	def create(dataLib):
-		return Report()
-
 

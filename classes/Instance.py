@@ -217,9 +217,6 @@ class Instance:
 		self.readResources(infile)
 
 
-	def create(dataLib):
-		return Instance()
-	
 	def readInstanceInfo(self, infile):
 		numJobs = 0
 		numResources = 0
