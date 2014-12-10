@@ -25,7 +25,7 @@ class Instance:
 		self.removeTransitiveConstraints()
 
 		n = len(self.activities)
-		maxConnections = n * (n - 1)
+		maxConnections = (n * (n - 1)) / 2
 		return float(maxConnections - numConnections) / maxConnections
 
 	def addPrecedenceConstraint(self, firstId, secondId):
