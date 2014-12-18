@@ -4,6 +4,7 @@ RCPSP Resting Framework
 A framework for experimenting with RCPSP instances and Partial Order Schedules
 
 NOTE: This code exists merely as a working prototype.
-Most of the code is ugly, very complex, and probably won't work on instances I haven't used it on.
-There is an intention to increase the code quality, but that does not have priority as long as my thesis is not completely written.
+Although some effort has been put into refactoring, some code is still ugly and messy.
+Some documentation is available in the [Wiki](https://github.com/dwilmer/rcpsp-testing-framework/wiki), but this does not have priority.
 
+Feel free to ask, post issues, or fork this project.
